@@ -1,0 +1,3 @@
+import confuselib
+
+confuselib.confused()
