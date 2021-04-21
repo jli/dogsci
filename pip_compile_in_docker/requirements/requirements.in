@@ -1,0 +1,3 @@
+# note: run bin/pip_compile_in_docker.sh to regenerate requirements.txt, then
+# rebuild the docker image to use the updated requirements.txt.
+requests
