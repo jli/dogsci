@@ -72,9 +72,11 @@ class Subklass_staticmethod_setviainit(Klass_staticmethod):
         self.fields_factory = lambda: {"viainit": "viainit"}
         super().__init__()
 
+# wow this still works
 Subklass_staticmethod_setviainit()
 
 class Subklass_staticmethod_overrideviafield(Klass_staticmethod):
-    fields_factory = lambda: {"viainit": "viainit"}
+    fields_factory = lambda: {"fieldoverride": "fieldoverride"}
 
+# ok now this fails again
 Subklass_staticmethod_overrideviafield()
