@@ -1,0 +1,34 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.0.1
+  hooks:
+    - id: check-merge-conflict
+    - id: debug-statements
+    - id: no-commit-to-branch
+      args: [--branch, main]
+    - id: end-of-file-fixer
+    - id: requirements-txt-fixer
+    - id: trailing-whitespace
+
+- repo: https://github.com/pycqa/isort
+  rev: 5.9.3
+  hooks:
+    - id: isort
+
+- repo: https://github.com/psf/black
+  rev: 21.9b0
+  hooks:
+    - id: black
+      language_version: python3.8
+
+# Notes:
+# - flake8 after isort and black since those hooks can auto-fix issues that
+#   flake8 would otherwise complain about.
+# - Use SKIP=flake8 to prevent flake8 from blocking commits.
+- repo: https://github.com/pycqa/flake8
+  rev: 3.9.2
+  hooks:
+    - id: flake8
+      # Uncomment to turn flake8 into a "warning" (doesn't block commits).
+      # args: [--exit-zero]
+      # verbose: true
