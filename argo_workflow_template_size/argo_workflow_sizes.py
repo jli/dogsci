@@ -140,6 +140,10 @@ def print_wf_size_variations_speconly(orig: str):
 def main():
     orig = read_stdin()
     print_wf_toplevel_sizes(orig)
+    # this version prints percentages of the total
+    # print_wf_size_variations(orig)
+    # this version prints percentages of just the 'spec' object within the
+    # broader workflow object (which makes the differences more dramatically)
     print_wf_size_variations_speconly(orig)
 
 
