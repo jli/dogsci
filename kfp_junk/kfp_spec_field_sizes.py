@@ -6,15 +6,9 @@ import argparse
 import json
 import pprint
 from collections import defaultdict
-from typing import Any, DefaultDict, Dict, List, NamedTuple, Optional
+from typing import Any, DefaultDict, List, Optional
 
 import yaml
-
-
-class Command(NamedTuple):
-    name: str
-    command: List[str]
-    env: Dict[str, str]
 
 
 def read_yaml(path: str) -> dict:
@@ -65,7 +59,7 @@ def print_sizes(obj: Any, field_sizes: dict) -> None:
         list(field_sizes.items()), key=lambda tup: tup[1], reverse=True
     )
     for k, v in sorted_field_sizes[:20]:
-        print(f"{k}: {v} ({v / total_size * 100:.1f}%)")
+        print(f"{k}: {v:,} ({v / total_size * 100:.1f}%)")
 
 
 def main():
