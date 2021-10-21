@@ -82,12 +82,14 @@ def print_sizes(obj: Any, field_sizes: dict) -> None:
         )
 
     top_sizes = 20
-    print(f"\n--> descending size (top {top_sizes}):")
+    print(f"--> descending size (top {top_sizes}):")
     field_sizes_descending_size = sorted(
         list(field_sizes.items()), key=lambda tup: tup[1], reverse=True
     )
     for k, v in field_sizes_descending_size[:top_sizes]:
         print_one(k, v)
+
+    print()
 
     print("--> alphabetical:")
     field_sizes_alpha = sorted(list(field_sizes.items()))
