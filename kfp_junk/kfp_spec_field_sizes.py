@@ -41,7 +41,10 @@ def read_yaml(path: str) -> dict:
 
 
 def json_repr_size(obj: Any) -> int:
-    return len(json.dumps(obj, separators=(",", ":")))
+    try:
+        return len(json.dumps(obj, separators=(",", ":")))
+    except TypeError:
+        return json_repr_size(str(obj))
 
 
 def compute_field_sizes(
