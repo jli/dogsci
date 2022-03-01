@@ -3,16 +3,14 @@
 import asyncio
 import queue
 import signal
-from typing import Optional
+import threading
+from typing import AsyncIterable, Iterable, Optional, TypeVar
 
 
-SIGWINCH_QUEUE: Optional[queue.Queue] = None
+SIGWINCH_QUEUE = queue.Queue(1)
 
 
 def enqueue_signal(sig, _frame) -> None:
-    if SIGWINCH_QUEUE is None:
-        print("signal queue not initialized yet... dropping signal")
-        return
     try:
         print('adding signal to queue:', sig)
         SIGWINCH_QUEUE.put_nowait(sig)
@@ -20,16 +18,56 @@ def enqueue_signal(sig, _frame) -> None:
         print("queue full but thats ok")
 
 
-def read_queue():
-    global SIGWINCH_QUEUE
-    SIGWINCH_QUEUE = queue.Queue(1)
+def install_winch_handler():
     signal.signal(signal.SIGWINCH, enqueue_signal)
+
+def get_winch_stream_sync() -> Iterable[int]:
     while True:
         print('forever loop...')
-        item = SIGWINCH_QUEUE.get()
-        print("got stuff:", item)
+        yield SIGWINCH_QUEUE.get()
+
+
+T = TypeVar('T')
+
+def asyncify_iterable(it: Iterable[T]) -> AsyncIterable[T]:
+    """Wrap blocking iterator into an asynchronous one"""
+    loop = asyncio.get_event_loop()
+    q = asyncio.Queue(1)
+    exception = None
+    _END = object()
+
+    async def yield_items_async():
+        while True:
+            next_item = await q.get()
+            if next_item is _END:
+                break
+            yield next_item
+        if exception is not None:
+            # the iterator has raised, propagate the exception
+            raise exception
+
+    def iter_to_queue():
+        nonlocal exception
+        try:
+            for item in it:
+                # This runs outside the event loop thread, so we
+                # must use thread-safe API to talk to the queue.
+                asyncio.run_coroutine_threadsafe(q.put(item), loop).result()
+        except Exception as e:
+            exception = e
+        finally:
+            asyncio.run_coroutine_threadsafe(q.put(_END), loop).result()
+
+    threading.Thread(target=iter_to_queue).start()
+    return yield_items_async()
+
+
+async def main():
+    install_winch_handler()
+    async for i in asyncify_iterable(get_winch_stream_sync()):
+        print('got winch:', i)
+
 
 
 if __name__ == "__main__":
-    read_queue()
-    # asyncio.run(read_queue())
+    asyncio.run(main())
