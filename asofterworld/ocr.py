@@ -4,6 +4,7 @@
 # - doesn't work that well... try upscaling first?
 # - threadpool didn't help. try process pool instead
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 import logging
 from pathlib import Path
@@ -12,6 +13,7 @@ from typing import Iterable
 from PIL import Image
 from PIL import ImageFile
 import pytesseract
+from rich.progress import track
 
 logging.basicConfig(level=logging.INFO)
 
@@ -66,16 +68,19 @@ def write_ocr_metadata_json(metadata_with_ocr: Iterable[dict]) -> None:
 def do_all_ocr() -> None:
     ImageFile.LOAD_TRUNCATED_IMAGES = True
     comics_metadata = read_metadata_json()
-    # with ThreadPoolExecutor() as e:
-    #     futs = []
-    #     for metadata in comics_metadata:
-    #         futs.append(e.submit(augment_metadata_with_ocr, metadata))
-    #     results = [r.result() for r in track(as_completed(futs), total=len(comics_metadata))]
     results = []
-    for i, metadata in enumerate(comics_metadata, 1):
-        metadata_with_ocr = augment_metadata_with_ocr(metadata)
-        print(f"{i}/{len(comics_metadata)} parsed: {metadata_with_ocr['ocr']}")
-        results.append(metadata_with_ocr)
+    with ProcessPoolExecutor() as e:
+        futs = []
+        for metadata in comics_metadata:
+            futs.append(e.submit(augment_metadata_with_ocr, metadata))
+        for i, fut in track(enumerate(as_completed(futs), 1), total=len(comics_metadata)):
+            metadata_with_ocr = fut.result()
+            print(f"{i}/{len(comics_metadata)} parsed: {metadata_with_ocr['ocr']}")
+            results.append(metadata_with_ocr)
+    # for i, metadata in enumerate(comics_metadata, 1):
+    #     metadata_with_ocr = augment_metadata_with_ocr(metadata)
+    #     print(f"{i}/{len(comics_metadata)} parsed: {metadata_with_ocr['ocr']}")
+    #     results.append(metadata_with_ocr)
     write_ocr_metadata_json(results)
     logging.info("all done")
 
