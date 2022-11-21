@@ -16,6 +16,8 @@ import pytesseract
 logging.basicConfig(level=logging.INFO)
 
 
+COMICS_SUBDIR = "comics_superres4x"
+
 def read_metadata_json() -> list[dict]:
     return [
         json.loads(line) for line in Path("metadata.ndjson").read_text().splitlines()
@@ -23,7 +25,7 @@ def read_metadata_json() -> list[dict]:
 
 
 def chop_comic_frames(image: Image.Image) -> Iterable[Image.Image]:
-    if image.height not in (261, 275, 525, 1100) or image.width not in (720, 2880):
+    if image.height not in (261, 275, 525, 550, 1100) or image.width not in (720, 1440, 2880):
         logging.info(f"weird image dimensions: {image.width}, {image.height}")
     # using ratio so this works for upscaled images
     approx_row_height = image.width / 2.62
@@ -51,7 +53,7 @@ def do_ocr(filename: str) -> list[str]:
 
 def augment_metadata_with_ocr(d: dict) -> dict:
     """augment original metadata json dict with OCR"""
-    frame_texts = do_ocr("comics/" + d["filename"])
+    frame_texts = do_ocr(f"{COMICS_SUBDIR}/" + d["filename"])
     return {**d, "ocr": frame_texts}
 
 
