@@ -18,7 +18,7 @@ from rich.progress import track
 logging.basicConfig(level=logging.INFO)
 
 
-COMICS_SUBDIR = "comics_superres4x"
+COMICS_SUBDIR = "comics_superres2x"
 
 def read_metadata_json() -> list[dict]:
     return [
@@ -61,7 +61,7 @@ def augment_metadata_with_ocr(d: dict) -> dict:
 
 def write_ocr_metadata_json(metadata_with_ocr: Iterable[dict]) -> None:
     metadata_with_ocr = sorted(metadata_with_ocr, key=lambda d: d["index"])
-    with Path("metadata_ocr.ndjson").open("w") as f:
+    with Path("metadata_ocr__wut.ndjson").open("w") as f:
         for d in metadata_with_ocr:
             f.write(json.dumps(d) + "\n")
 
