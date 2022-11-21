@@ -23,9 +23,11 @@ def read_metadata_json() -> list[dict]:
 
 
 def chop_comic_frames(image: Image.Image) -> Iterable[Image.Image]:
-    if image.height not in (261, 275, 525) or image.width not in (720,):
+    if image.height not in (261, 275, 525, 1100) or image.width not in (720, 2880):
         logging.info(f"weird image dimensions: {image.width}, {image.height}")
-    num_rows = round(image.height / 262)
+    # using ratio so this works for upscaled images
+    approx_row_height = image.width / 2.62
+    num_rows = round(image.height / approx_row_height)
     for row_num in range(num_rows):
         last_row = row_num + 1 == num_rows
         for col_num in range(3):
@@ -35,19 +37,21 @@ def chop_comic_frames(image: Image.Image) -> Iterable[Image.Image]:
             end_y = round(image.height * (row_num + 1) / num_rows)
             if last_row:
                 # trim the artist name and web page
-                end_y -= 20
+                end_y -= 20 * (1 if image.width < 2000 else 4)
             yield image.crop((start_x, start_y, end_x, end_y))
 
 
-def do_ocr(raw_filename: str) -> list[str]:
-    real_filename = "comics/" + raw_filename
-    image = Image.open(real_filename)
-    return [pytesseract.image_to_string(frame) for frame in chop_comic_frames(image)]
+def do_ocr(filename: str) -> list[str]:
+    image = Image.open(filename)
+    return [
+        pytesseract.image_to_string(frame).replace("\n", "  ").strip()
+        for frame in chop_comic_frames(image)
+    ]
 
 
 def augment_metadata_with_ocr(d: dict) -> dict:
     """augment original metadata json dict with OCR"""
-    frame_texts = do_ocr(d["filename"])
+    frame_texts = do_ocr("comics/" + d["filename"])
     return {**d, "ocr": frame_texts}
 
 
