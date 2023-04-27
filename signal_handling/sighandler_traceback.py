@@ -1,3 +1,4 @@
+from datetime import datetime
 import signal
 import time
 import os
@@ -7,7 +8,8 @@ import traceback
 def install_interrupt_handler() -> None:
     # this seems to be an effective way to examine what's keeping the current thread busy
     def signal_handler(sig, frame):
-        print(f"caught {sig=}")
+        now = datetime.now()
+        print(f"{now:%H:%M:%S} caught {sig=}. showing stack trace from {frame=}...")
         # these are the same, except with `frame`, we don't include the 2 extra lines:
         #   File ".../signal_handling/sighandler_traceback.py", line 13, in signal_handler
         #     traceback.print_stack()
@@ -15,6 +17,7 @@ def install_interrupt_handler() -> None:
         traceback.print_stack(frame)
         print("print_stack()")
         traceback.print_stack()
+        print("signal handler done...")
 
     signal.signal(signal.SIGINT, signal_handler)
 
