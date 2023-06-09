@@ -17,14 +17,14 @@ def install_interrupt_handler() -> None:
         traceback.print_stack(frame)
         print("print_stack()")
         traceback.print_stack()
-        print("signal handler done...")
+        print("signal handler done.")
 
     signal.signal(signal.SIGINT, signal_handler)
 
 
 def main():
     print("main ...")
-    print("installing interrupt handler")
+    print(f"installing interrupt handler. my pid: {os.getpid()}")
     install_interrupt_handler()
     subfunction1()
 
